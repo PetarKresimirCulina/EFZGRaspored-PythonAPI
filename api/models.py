@@ -1,30 +1,31 @@
-from sqlalchemy import Column, Date, DateTime, Integer, String, Table, MetaData, create_engine
+from sqlalchemy import Column, Date, DateTime, Integer, String, Table, MetaData, create_engine, ForeignKey
 from sqlalchemy.schema import FetchedValue
+from sqlalchemy.orm import backref, relationship, configure_mappers, deferred
 from api import Base, metadata
 
 class TBBranch(Base):
     __tablename__ = 'TBBranch'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Branch_Id = Column(Integer, primary_key=True)
     Program_Id = Column(Integer, nullable=False)
     Name = Column(String(100), nullable=False)
-    Translation = Column(String(100))
-    Code = Column(String(40), nullable=False)
+    Translation = deferred(Column(String(100)))
+    Code = deferred(Column(String(40), nullable=False))
     Year = Column(Integer, nullable=False)
-    Students_Num = Column(Integer, nullable=False)
-    Seq_Num = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
-    Color = Column(Integer)
-    Points = Column(Integer)
-    Misc_Flags = Column(String(256))
-    Flags = Column(Integer)
+    Students_Num = deferred(Column(Integer, nullable=False))
+    Seq_Num = deferred(Column(Integer, nullable=False))
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    Color = deferred(Column(Integer))
+    Points = deferred(Column(Integer))
+    Misc_Flags = deferred(Column(String(256)))
+    Flags = deferred(Column(Integer))
 
 
 class TBBuilding(Base):
     __tablename__ = 'TBBuilding'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Building_Id = Column(Integer, primary_key=True)
     City_Id = Column(Integer, nullable=False)
     Name = Column(String(60), nullable=False)
@@ -41,7 +42,7 @@ t_TBBuilding_Dist = Table(
 class TBCity(Base):
     __tablename__ = 'TBCity'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     City_Id = Column(Integer, primary_key=True)
     Name = Column(String(60), nullable=False)
     Time_Zone = Column(Integer, nullable=False)
@@ -59,33 +60,36 @@ t_TBCity_Dist = Table(
 class TBCourse(Base):
     __tablename__ = 'TBCourse'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Course_Id = Column(Integer, primary_key=True)
     Execution_Type = Column(Integer, nullable=False)
     Name = Column(String(100), nullable=False)
-    Translation = Column(String(100))
-    Code = Column(String(40), nullable=False)
-    Preferred_Time = Column(Integer, nullable=False)
-    Seq_Num = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
-    Color = Column(Integer)
-    PushNote = Column(String(512))
-    Filter_Aid = Column(String(16))
-    Points = Column(Integer)
-    Misc_Flags = Column(String(256))
-    ChiefTeacher_Id = Column(Integer, nullable=False)
-    Flags = Column(Integer, nullable=False)
+    Translation = deferred(Column(String(100)))
+    Code = deferred(Column(String(40), nullable=False))
+    Preferred_Time = deferred(Column(Integer, nullable=False))
+    Seq_Num = deferred(Column(Integer, nullable=False))
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    Color = deferred(Column(Integer))
+    PushNote = deferred(Column(String(512)))
+    Filter_Aid = deferred(Column(String(16)))
+    Points = deferred(Column(Integer))
+    Misc_Flags = deferred(Column(String(256)))
+    ChiefTeacher_Id = deferred(Column(Integer, nullable=False))
+    Flags = deferred(Column(Integer, nullable=False))
 
 
 class TBCoursePart(Base):
     __tablename__ = 'TBCoursePart'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     CoursePart_Id = Column(Integer, primary_key=True)
-    Course_Id = Column(Integer, nullable=False, index=True)
+    Course_Id = Column(Integer, ForeignKey('TBCourse.Course_Id'), nullable=False, index=True)
     CourseType_Id = Column(Integer, nullable=False)
-    ChiefTeacher_Id = Column(Integer, nullable=False)
-    Flags = Column(Integer, nullable=False)
+    ChiefTeacher_Id = deferred(Column(Integer, nullable=False))
+    Flags = deferred(Column(Integer, nullable=False))
+    
+    course = relationship('TBCourse', lazy='joined', backref='coursePart')
+    
 
 
 t_TBCoursePart_RProp = Table(
@@ -94,18 +98,24 @@ t_TBCoursePart_RProp = Table(
     Column('RProp_Id', Integer, nullable=False, index=True)
 )
 
+class TBCoursePart_Tutor:
+    __tablename__ = 'TBCoursePart_Tutor'
+    
+    CoursePart_Id = Column(Integer, nullable=False, index=True)
+    Tutor_Id = Column(Integer, nullable=False, index=True)
 
+'''
 t_TBCoursePart_Tutor = Table(
     'TBCoursePart_Tutor', metadata,
     Column('CoursePart_Id', Integer, nullable=False, index=True),
     Column('Tutor_Id', Integer, nullable=False, index=True)
 )
-
+'''
 
 class TBCourseType(Base):
     __tablename__ = 'TBCourseType'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     CourseType_Id = Column(Integer, primary_key=True)
     Name = Column(String(100), nullable=False)
     Code = Column(String(40), nullable=False)
@@ -123,22 +133,22 @@ t_TBCourse_Branch = Table(
 class TBGroup(Base):
     __tablename__ = 'TBGroups'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Groups_Id = Column(Integer, primary_key=True)
     Branch_Id = Column(Integer, nullable=False, index=True)
     Name = Column(String(40), nullable=False)
-    Students_Num = Column(Integer, nullable=False)
-    Note = Column(String(200), nullable=False)
-    Password = Column(String(20), nullable=False)
-    Email = Column(String(256), nullable=False)
-    Flags = Column(Integer, nullable=False)
+    Students_Num = deferred(Column(Integer, nullable=False))
+    Note = deferred(Column(String(200), nullable=False))
+    Password = deferred(Column(String(20), nullable=False))
+    Email = deferred(Column(String(256), nullable=False))
+    Flags = deferred(Column(Integer, nullable=False))
     Parent_Group_Id = Column(Integer, nullable=False, index=True)
-    Group_Class = Column(Integer, nullable=False)
-    City_Id = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
-    Color = Column(Integer)
-    PushNote = Column(String(512))
-    Misc_Flags = Column(String(256))
+    Group_Class = deferred(Column(Integer, nullable=False))
+    City_Id = deferred(Column(Integer, nullable=False))
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    Color = deferred(Column(Integer))
+    PushNote = deferred(Column(String(512)))
+    Misc_Flags = deferred(Column(String(256)))
 
 
 class TBHistoryLog(Base):
@@ -165,25 +175,25 @@ t_TBHoliday = Table(
 class TBProgram(Base):
     __tablename__ = 'TBProgram'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Program_Id = Column(Integer, primary_key=True)
     Name = Column(String(150), nullable=False)
     Translation = Column(String(150))
-    Code = Column(String(40), nullable=False)
+    Code = deferred(Column(String(40), nullable=False))
     Years = Column(Integer, nullable=False)
-    City_Id = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
-    Color = Column(Integer)
-    Points = Column(Integer)
-    Misc_Flags = Column(String(256))
-    Seq_Num = Column(Integer, nullable=False)
-    Flags = Column(Integer)
+    City_Id = deferred(Column(Integer, nullable=False))
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    Color = deferred(Column(Integer))
+    Points = deferred(Column(Integer))
+    Misc_Flags = deferred(Column(String(256)))
+    Seq_Num = deferred(Column(Integer, nullable=False))
+    Flags = deferred(Column(Integer))
 
 
 class TBRProp(Base):
     __tablename__ = 'TBRProp'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     RProp_Id = Column(Integer, primary_key=True)
     Name = Column(String(50), nullable=False)
 
@@ -191,7 +201,7 @@ class TBRProp(Base):
 class TBReservation(Base):
     __tablename__ = 'TBReservation'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Reservation_Id = Column(Integer, primary_key=True)
     Type = Column(Integer, nullable=False)
     Note = Column(String(512), nullable=False)
@@ -278,27 +288,27 @@ class TBReservationTutorJournal(Base):
 class TBRoom(Base):
     __tablename__ = 'TBRoom'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Room_Id = Column(Integer, primary_key=True)
     Name = Column(String(100), nullable=False)
-    Seats_Num = Column(Integer, nullable=False)
-    Strict = Column(Integer, nullable=False)
-    Program_Id = Column(Integer, nullable=False)
-    City_Id = Column(Integer, nullable=False)
-    Building_Id = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
-    Reservation_Roles = Column(String(32), nullable=False)
-    Color = Column(Integer)
-    Misc_Flags = Column(String(256))
-    Priority = Column(Integer)
-    Meeting_Room = Column(Integer, nullable=False)
-    Conference_Hall = Column(Integer, nullable=False)
-    Exam_Hall = Column(Integer, nullable=False)
-    Seat_Num_X = Column(Integer, nullable=False)
-    Seat_Num_Y = Column(Integer, nullable=False)
-    Show_On_Web = Column(Integer)
-    Seq_Num = Column(Integer, nullable=False)
-    Flags = Column(Integer)
+    Seats_Num = deferred(Column(Integer, nullable=False))
+    Strict = deferred(Column(Integer, nullable=False))
+    Program_Id = deferred(Column(Integer, nullable=False))
+    City_Id = deferred(Column(Integer, nullable=False))
+    Building_Id = deferred(Column(Integer, nullable=False))
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    Reservation_Roles = deferred(Column(String(32), nullable=False))
+    Color = deferred(Column(Integer))
+    Misc_Flags = deferred(Column(String(256)))
+    Priority = deferred(Column(Integer))
+    Meeting_Room = deferred(Column(Integer, nullable=False))
+    Conference_Hall = deferred(Column(Integer, nullable=False))
+    Exam_Hall = deferred(Column(Integer, nullable=False))
+    Seat_Num_X = deferred(Column(Integer, nullable=False))
+    Seat_Num_Y = deferred(Column(Integer, nullable=False))
+    Show_On_Web = deferred(Column(Integer))
+    Seq_Num = deferred(Column(Integer, nullable=False))
+    Flags = deferred(Column(Integer))
 
 
 t_TBRoom_RProp = Table(
@@ -312,21 +322,24 @@ class TBSchedule(Base):
     __tablename__ = 'TBSchedule'
 
     Schedule_Id = Column(Integer, primary_key=True)
-    Course_Id = Column(Integer, nullable=False)
-    TurnPart_Id = Column(Integer, nullable=False, index=True)
-    Room_Id = Column(Integer, nullable=False, index=True)
+    Course_Id = Column(Integer, ForeignKey('TBCourse.Course_Id'), nullable=False, index=True)
+    TurnPart_Id = Column(Integer, ForeignKey('TBTurnPart.TurnPart_Id'), nullable=False, index=True)
+    Room_Id = Column(Integer, ForeignKey('TBRoom.Room_Id'), nullable=False, index=True)
     Day_Id = Column(Integer, nullable=False)
     Time_Id = Column(Integer, nullable=False)
     Duration = Column(Integer, nullable=False)
     Valid_From = Column(Integer, nullable=False)
     Valid_To = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
-    Flags = Column(Integer, nullable=False)
-    Week_Flags = Column(String(64))
-    Misc_Flags = Column(String(256))
-    Misc_Id = Column(Integer, nullable=False)
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    Flags = deferred(Column(Integer, nullable=False))
+    Week_Flags = deferred(Column(String(64)))
+    Misc_Flags = deferred(Column(String(256)))
+    Misc_Id = deferred(Column(Integer, nullable=False))
 
-
+    course = relationship('TBCourse', lazy='joined', backref='schedule')
+    turnPart = relationship('TBTurnPart',  lazy='joined', backref=backref('schedule', uselist=False))
+    room = relationship('TBRoom', lazy='joined', backref='schedule')
+    
 t_TBSettings = Table(
     'TBSettings', metadata,
     Column('Name', String(40), nullable=False),
@@ -337,7 +350,7 @@ t_TBSettings = Table(
 class TBStudent(Base):
     __tablename__ = 'TBStudent'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Student_Id = Column(Integer, primary_key=True)
     First_Name = Column(String(40), nullable=False)
     Last_Name = Column(String(40), nullable=False)
@@ -375,76 +388,96 @@ class TBTime(Base):
 class TBTurn(Base):
     __tablename__ = 'TBTurn'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Turn_Id = Column(Integer, primary_key=True)
-    CoursePart_Id = Column(Integer, nullable=False, index=True)
-    Seq_Num = Column(Integer, nullable=False)
+    CoursePart_Id = Column(Integer, ForeignKey('TBCoursePart.CoursePart_Id'), nullable=False, index=True)
+    Seq_Num = deferred(Column(Integer, nullable=False))
     Room_Id = Column(Integer, nullable=False)
-    Duration = Column(String(512), nullable=False)
-    Web_Note = Column(String(64))
-    No_Pauses = Column(Integer, nullable=False)
-    Start_Hour = Column(Integer, nullable=False)
-    Flags = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
-    All_Hours = Column(Integer)
+    Duration = deferred(Column(String(512), nullable=False))
+    Web_Note = deferred(Column(String(64)))
+    No_Pauses = deferred(Column(Integer, nullable=False))
+    Start_Hour = deferred(Column(Integer, nullable=False))
+    Flags = deferred(Column(Integer, nullable=False))
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    All_Hours = deferred(Column(Integer))
     Valid_From = Column(Integer, nullable=False)
     Valid_To = Column(Integer, nullable=False)
+    
+    coursePart = relationship('TBCoursePart', lazy='joined', backref='turn')
 
 
 class TBTurnPart(Base):
     __tablename__ = 'TBTurnPart'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     TurnPart_Id = Column(Integer, primary_key=True)
-    Turn_Id = Column(Integer, nullable=False, index=True)
-    Display_Name = Column(String(80), nullable=False)
-    Code = Column(String(40))
-    Use_Custom_Stud_Num = Column(Integer, nullable=False)
-    Actual_Stud_Num = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
+    Turn_Id = Column(Integer, ForeignKey('TBTurn.Turn_Id'), nullable=False, index=True)
+    Display_Name = deferred(Column(String(80), nullable=False))
+    Code = deferred(Column(String(40)))
+    Use_Custom_Stud_Num = deferred(Column(Integer, nullable=False))
+    Actual_Stud_Num = deferred(Column(Integer, nullable=False))
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    
+    turn = relationship('TBTurn', lazy='joined', backref='turnPart')
 
+class TBTurnPart_Group(Base):
+    __tablename__ = 'TBTurnPart_Groups'
+    TurnPart_Id = Column(Integer, ForeignKey('TBTurnPart.TurnPart_Id'), nullable=False, index=True, primary_key=True)
+    Groups_Id = Column(Integer, nullable=False, index=True)
+    
+    turnPart = relationship('TBTurnPart', lazy='joined', backref='turnPartGroup')
 
+class TBTurn_Tutor(Base):
+    __tablename__ = 'TBTurn_Tutor'
+    Turn_Id = Column(Integer, ForeignKey('TBTurn.Turn_Id'), nullable=False, index=True, primary_key=True)
+    Tutor_Id = Column(Integer, ForeignKey('TBTutor.Tutor_Id'), nullable=False, index=True)
+    
+    tutor = relationship('TBTutor', lazy='joined', backref='turnTutor')
+    turn = relationship('TBTurn', lazy='joined', backref=backref('turnTutor', uselist=False)) #1:1 veze?
+    
+    
+'''
 t_TBTurnPart_Groups = Table(
     'TBTurnPart_Groups', metadata,
     Column('TurnPart_Id', Integer, nullable=False, index=True),
     Column('Groups_Id', Integer, nullable=False, index=True)
 )
-
-
+'''
+'''
 t_TBTurn_Tutor = Table(
     'TBTurn_Tutor', metadata,
     Column('Turn_Id', Integer, nullable=False, index=True),
     Column('Tutor_Id', Integer, nullable=False, index=True)
 )
-
+'''
 
 class TBTutor(Base):
     __tablename__ = 'TBTutor'
 
-    Unique_Id = Column(String(40))
+    Unique_Id = deferred(Column(String(40)))
     Tutor_Id = Column(Integer, primary_key=True)
     First_Name = Column(String(40), nullable=False)
     Last_Name = Column(String(40), nullable=False)
-    Password = Column(String(20), nullable=False)
-    Note = Column(String(255), nullable=False)
+    Password = deferred(Column(String(20), nullable=False))
+    Note = deferred(Column(String(255), nullable=False))
     Code = Column(String(40), nullable=False)
-    Email = Column(String(1024), nullable=False)
+    Email = deferred(Column(String(1024), nullable=False))
     Room_Id = Column(Integer, nullable=False)
     Program_Id = Column(Integer, nullable=False)
-    City_Id = Column(Integer, nullable=False)
-    Flags = Column(Integer, nullable=False)
-    Merge_Id = Column(Integer, nullable=False)
-    Role = Column(String(32), nullable=False)
-    Color = Column(Integer)
-    Employee_Number = Column(Integer)
-    PushNote = Column(String(512))
-    AA_Queue = Column(String(32))
-    EV_Cert = Column(String(32))
-    BL_Cert = Column(String(32))
-    OL_Cert = Column(String(32))
-    State_Country = Column(String(32))
-    FACD = Column(String(64))
-    Misc_Flags = Column(String(256))
+    City_Id = deferred(Column(Integer, nullable=False))
+    Flags = deferred(Column(Integer, nullable=False))
+    Merge_Id = deferred(Column(Integer, nullable=False))
+    Role = deferred(Column(String(32), nullable=False))
+    Color = deferred(Column(Integer))
+    Employee_Number = deferred(Column(Integer))
+    PushNote = deferred(Column(String(512)))
+    AA_Queue = deferred(Column(String(32)))
+    EV_Cert = deferred(Column(String(32)))
+    BL_Cert = deferred(Column(String(32)))
+    OL_Cert = deferred(Column(String(32)))
+    State_Country = deferred(Column(String(32)))
+    FACD = deferred(Column(String(64)))
+    Misc_Flags = deferred(Column(String(256)))
 
 
 t_TBWeb_Settings = Table(
@@ -471,3 +504,4 @@ t_VWHistoryLog = Table(
     Column('Description', String(250)),
     Column('EventType', Integer, server_default=FetchedValue())
 )
+# test - TBSchedule.turnPart.turn = relationship(TBTurn, lazy='joined', backref='schedule')

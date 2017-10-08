@@ -12,8 +12,7 @@ class Dev(object):
     DB_USER = 'test'
     DB_PASS = 'root'
     
-    DB_ECHO = False
-    
+    DB_ECHO = True
     
     DATABASE='{0}://{1}:{2}@{3}/{4}?charset={5}'.format(
                                     DB_TYPE, 
