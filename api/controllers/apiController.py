@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
+import time
+import datetime
+
 from flask import Blueprint, current_app, request, jsonify
 from sqlalchemy import asc, desc, and_, or_
 from sqlalchemy.orm import joinedload, load_only
-from api.models import TBBranch, TBProgram, TBGroup, TBSchedule, TBCourse, TBTutor, TBRoom, TBTurnPart_Group, TBTurn_Tutor, TBTurn, TBTurnPart, TBCoursePart
+from api.models import TBBranch, TBProgram, TBGroup, TBSchedule, TBCourse, TBTutor, TBRoom, TBTurnPart_Group, TBTurn_Tutor, TBTurn, TBTurnPart, TBCoursePart, t_TBSettings
+from api import db_session
 
 api = Blueprint('api', __name__)
-
-'''
-fetch_data.php - OK
-get_groups.php - OK
-get_duration.php - NOK
-get_all_for_search.php - NOK
-get_schedules.php - OK
-'''
 
 @api.route('/programs', methods = ['POST'])
 def programs():
@@ -28,18 +24,6 @@ def programs():
 
 @api.route('/groups', methods = ['POST'])
 def groups():
-    '''
-    SELECT * FROM branches, groups WHERE groups.branch_id=branches.id 
-    AND branches.program_id=$program_id 
-    AND (branches.year=3 
-    OR branches.year=4) 
-    AND 
-    EXISTS(SELECT * FROM courses 
-    WHERE courses.branch_id=branches.id) 
-    ORDER BY groups.name ASC"
-    
-    uzmi sve grupe čiji branchevi imaju trazene program id i year parametre - valjda - grupe su npr 1_1 ABC-DEF, 1_2, DEF-GHI itd.
-    '''
     programId = int(request.form.get('programId'))
     year = int(request.form.get('year'))
     
@@ -59,54 +43,8 @@ def groups():
     
 @api.route('/schedules', methods = ['POST'])
 def schedules():
-    '''
-    SELECT * FROM schedules, courses, tutors, rooms 
-    WHERE schedules.turn_part_id=courses.turn_part_id 
-    AND schedules.parent_id = $groups 
-    AND courses.groups_parent = $groups 
-    AND courses.tutors = tutors.id 
-    AND schedules.room_id=rooms.id"
-    '''
+
     groupId = int(request.form.get('groupid'))
-    # // day | units in day | duration | roomid | period | group id | course name | execution type | tutor name | tutor last name | tutor code | room name | group name
-    
-    
-    # LOGIKA - ide schedules -> turn part id -> turn id -> course part id i na kraju course id da se dobije naziv
-    
-    #1
-    '''
-    group = TBGroup.query.filter(TBGroup.Parent_Group_Id == groupId).all()
-    
-    terms = [groupId]
-    for g in group:
-        terms.append(g.Groups_Id)
-    
-    clauses = or_( * [TBTurnPart_Group.Groups_Id == x for x in terms] )
-    tbtpg = TBTurnPart_Group.query.filter(clauses).all()
-    
-    response = []
-    for t in tbtpg:
-        schedule = t.turnPart.schedule
-        turn =  t.turnPart.turn
-        tutor = turn.turnTutor.tutor
-    
-        response.append({
-            'day': schedule.Day_Id,
-            'unitsInDay': schedule.Time_Id,
-            'duration': schedule.Duration,
-            'roomId': schedule.Room_Id,
-            'groupId': groupId,
-            'courseName': schedule.course.Name,
-            'executionType': turn.coursePart.CourseType_Id,
-            'tutorName': tutor.First_Name,
-            'tutorLastName': tutor.Last_Name,
-            'tutorCode': tutor.Code,
-            'roomName': schedule.room.Name,
-        })
-    return jsonify(response)
-    
-    '''
-    # 2
     groupChildren = TBGroup.query.filter(TBGroup.Parent_Group_Id == groupId)\
                             .options(load_only("Groups_Id",))\
                             .all()
@@ -116,20 +54,14 @@ def schedules():
                             .first()
     
     terms = [groupId]
-    for g in groupChildren:
-        terms.append(g.Groups_Id)
+    [terms.append(g.Groups_Id) for g in groupChildren]
     
     clauses = or_( * [TBTurnPart_Group.Groups_Id == x for x in terms] )
-    tbtpg = TBTurnPart_Group.query.join(TBTurnPart, TBTurnPart_Group.TurnPart_Id == TBTurnPart.TurnPart_Id)\
-                                    .join(TBSchedule, TBTurnPart.TurnPart_Id == TBSchedule.TurnPart_Id)\
-                                    .join(TBTurn, TBTurnPart.Turn_Id == TBTurn.Turn_Id)\
-                                    .join(TBTurn_Tutor, TBTurn.Turn_Id == TBTurn_Tutor.Turn_Id)\
-                                    .join(TBTutor, TBTurn_Tutor.Tutor_Id == TBTutor.Tutor_Id)\
-                                    .filter(clauses)\
-                                    .all()
+    groupSchedule = TBTurnPart_Group.query.filter(clauses).all()
     
     response = []    
-    for t in tbtpg:
+    
+    for t in groupSchedule:
         response.append({
             'day': t.turnPart.schedule.Day_Id,
             'unitsInDay': t.turnPart.schedule.Time_Id,
@@ -144,5 +76,60 @@ def schedules():
             'roomName': t.turnPart.schedule.room.Name,
             'groupName': groupName.Name,
         })
+        
     return jsonify(response)
     
+    '''
+        SELECT * FROM `TBTurnPart_Groups`
+        JOIN `TBSchedule` ON `TBSchedule`.`TurnPart_Id` = `TBTurnPart_Groups`.`TurnPart_Id`
+        JOIN `TBTurnPart` ON `TBTurnPart`.`TurnPart_Id` = `TBTurnPart_Groups`.`TurnPart_Id`
+        JOIN `TBTurn` ON `TBTurnPart`.`Turn_Id` = `TBTurn`.`Turn_Id`
+        JOIN `TBTurn_Tutor` ON `TBTurn_Tutor`.`Turn_Id` = `TBTurn`.`Turn_Id`
+        JOIN `TBTutor` ON `TBTurn_Tutor`.`Tutor_Id` = `TBTutor`.`Tutor_Id`
+        JOIN `TBCoursePart` ON `TBCoursePart`.`CoursePart_Id` = `TBTurn`.`CoursePart_Id`
+        JOIN `TBCourse` ON `TBCourse`.`Course_Id` = `TBCoursePart`.`Course_Id`
+        JOIN `TBRoom` ON `TBRoom`.`Room_Id` = `TBSchedule`.`Room_Id`
+        JOIN `TBGroups` ON `TBTurnPart_Groups`.`Groups_Id` = `TBGroups`.`Groups_Id`
+        WHERE `TBTurnPart_Groups`.`Groups_Id` = 46 OR `TBTurnPart_Groups`.`Groups_Id` = 61 OR `TBTurnPart_Groups`.`Groups_Id` = 62
+    '''
+    
+@api.route('/duration', methods = ['POST'])
+def duration():
+    year = winter = summer = None
+    
+    settings = db_session.query(t_TBSettings).all()
+    
+    semesterType = TBSchedule.query.filter(TBSchedule.Valid_From > 1).limit(22).all()
+    semesterType = 0 if len(semesterType) > 20 else 1
+    
+    for s in settings:
+        if s.Name == 'year':
+            year = int(s.Value.strip())
+        if s.Name == 'winter_semester':
+            winter = s.Value.strip()
+        if s.Name == 'summer_semester':
+            summer = s.Value.strip()
+    
+    if semesterType == 0:
+        winter = winter.split(' - ')
+        winter[0] = '{0}{1}'.format(winter[0], year)
+        winter[1] = '{0}{1}'.format(winter[1], year + 1)
+        
+        start = time.mktime(datetime.datetime.strptime(winter[0], "%d.%m.%Y").timetuple())
+        end = time.mktime(datetime.datetime.strptime(winter[1], "%d.%m.%Y").timetuple())
+    else:
+        summer = summer.split(' - ')
+        summer[0] = '{0}{1}'.format(summer[0], year)
+        summer[1] = '{0}{1}'.format(summer[1], year + 1)
+        
+        start = time.mktime(datetime.datetime.strptime(summer[0], "%d.%m.%Y").timetuple())
+        end = time.mktime(datetime.datetime.strptime(summer[0], "%d.%m.%Y").timetuple())
+    
+    response = [
+        {
+            'year': year,
+            'start': start,
+            'ends': end
+        }
+    ]
+    return jsonify(response)

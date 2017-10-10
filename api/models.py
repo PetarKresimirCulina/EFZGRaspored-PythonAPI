@@ -88,8 +88,9 @@ class TBCoursePart(Base):
     ChiefTeacher_Id = deferred(Column(Integer, nullable=False))
     Flags = deferred(Column(Integer, nullable=False))
     
+    '''
     course = relationship('TBCourse', lazy='joined', backref='coursePart')
-    
+    '''
 
 
 t_TBCoursePart_RProp = Table(
@@ -149,6 +150,7 @@ class TBGroup(Base):
     Color = deferred(Column(Integer))
     PushNote = deferred(Column(String(512)))
     Misc_Flags = deferred(Column(String(256)))
+    
 
 
 class TBHistoryLog(Base):
@@ -405,7 +407,6 @@ class TBTurn(Base):
     
     coursePart = relationship('TBCoursePart', lazy='joined', backref='turn')
 
-
 class TBTurnPart(Base):
     __tablename__ = 'TBTurnPart'
 
@@ -418,23 +419,29 @@ class TBTurnPart(Base):
     Actual_Stud_Num = deferred(Column(Integer, nullable=False))
     Merge_Id = deferred(Column(Integer, nullable=False))
     
+
     turn = relationship('TBTurn', lazy='joined', backref='turnPart')
+
 
 class TBTurnPart_Group(Base):
     __tablename__ = 'TBTurnPart_Groups'
     TurnPart_Id = Column(Integer, ForeignKey('TBTurnPart.TurnPart_Id'), nullable=False, index=True, primary_key=True)
-    Groups_Id = Column(Integer, nullable=False, index=True)
+    Groups_Id = Column(Integer, ForeignKey('TBGroups.Groups_Id'), nullable=False, index=True)
+    
     
     turnPart = relationship('TBTurnPart', lazy='joined', backref='turnPartGroup')
+    group = relationship('TBGroup', lazy='joined', backref='turnPartGroup')
+    #schedule = relationship('TBSchedule', primaryjoin='TBSchedule.TurnPart_Id', lazy='joined', backref='turnPartGroup')
+    
 
 class TBTurn_Tutor(Base):
     __tablename__ = 'TBTurn_Tutor'
     Turn_Id = Column(Integer, ForeignKey('TBTurn.Turn_Id'), nullable=False, index=True, primary_key=True)
     Tutor_Id = Column(Integer, ForeignKey('TBTutor.Tutor_Id'), nullable=False, index=True)
-    
+
     tutor = relationship('TBTutor', lazy='joined', backref='turnTutor')
     turn = relationship('TBTurn', lazy='joined', backref=backref('turnTutor', uselist=False)) #1:1 veze?
-    
+
     
 '''
 t_TBTurnPart_Groups = Table(
