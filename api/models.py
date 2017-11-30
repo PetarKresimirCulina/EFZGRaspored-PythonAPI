@@ -406,6 +406,13 @@ class TBTurn(Base):
     Valid_To = Column(Integer, nullable=False)
     
     coursePart = relationship('TBCoursePart', lazy='joined', backref='turn')
+    #turn = relationship('TBTurn', lazy='joined', backref=backref('turnTutor', uselist=False))
+    turnTutor = relationship('TBTurn_Tutor',
+        lazy='joined',
+        foreign_keys=[Turn_Id],
+        primaryjoin='TBTurn.Turn_Id == TBTurn_Tutor.Turn_Id',
+        backref='tutorTurn'
+    )
 
 class TBTurnPart(Base):
     __tablename__ = 'TBTurnPart'
@@ -432,6 +439,12 @@ class TBTurnPart_Group(Base):
     turnPart = relationship('TBTurnPart', lazy='joined', backref='turnPartGroup')
     group = relationship('TBGroup', lazy='joined', backref='turnPartGroup')
     #schedule = relationship('TBSchedule', primaryjoin='TBSchedule.TurnPart_Id', lazy='joined', backref='turnPartGroup')
+    schedule = relationship('TBSchedule',
+        lazy='joined',
+        foreign_keys=[TurnPart_Id],
+        primaryjoin='TBTurnPart_Group.TurnPart_Id == TBSchedule.TurnPart_Id',
+        backref='turnPartGroup'
+    )
     
 
 class TBTurn_Tutor(Base):
@@ -440,7 +453,7 @@ class TBTurn_Tutor(Base):
     Tutor_Id = Column(Integer, ForeignKey('TBTutor.Tutor_Id'), nullable=False, index=True)
 
     tutor = relationship('TBTutor', lazy='joined', backref='turnTutor')
-    turn = relationship('TBTurn', lazy='joined', backref=backref('turnTutor', uselist=False)) #1:1 veze?
+    #turn = relationship('TBTurn', lazy='joined', backref=backref('turnTutor', uselist=False))
 
     
 '''

@@ -62,6 +62,28 @@ def schedules():
     response = []    
     
     for t in groupSchedule:
+        schedule = t.schedule
+        group = t.group
+        tutor = t.turnPart.turn.turnTutor.tutor
+        coursePart = t.turnPart.turn.coursePart
+        
+        if schedule:
+            response.append({
+                'day': schedule.Day_Id,
+                'unitsInDay': schedule.Time_Id,
+                'duration': schedule.Duration,
+                'roomId': schedule.Room_Id,
+                'groupId': group.Groups_Id,
+                'courseName': schedule.course.Name,
+                'executionType': coursePart.CourseType_Id,
+                'tutorName': tutor.First_Name,
+                'tutorLastName': tutor.Last_Name,
+                'tutorCode': tutor.Code,
+                'roomName': schedule.room.Name,
+                'groupName': group.Name,
+            })
+    '''
+    for t in groupSchedule:
         response.append({
             'day': t.turnPart.schedule.Day_Id,
             'unitsInDay': t.turnPart.schedule.Time_Id,
@@ -76,7 +98,7 @@ def schedules():
             'roomName': t.turnPart.schedule.room.Name,
             'groupName': groupName.Name,
         })
-        
+       ''' 
     return jsonify(response)
     
     '''
@@ -133,3 +155,55 @@ def duration():
         }
     ]
     return jsonify(response)
+
+@api.route('/search', methods = ['POST'])
+def search():
+    '''
+    $result = $connection->query("SELECT * FROM schedules, courses, tutors, rooms, groups, branches WHERE schedules.turn_part_id=courses.turn_part_id AND courses.tutors = tutors.id AND schedules.room_id=rooms.id AND schedules.group_id = groups.id AND groups.branch_id = branches.id");
+		if($result->num_rows > 0)
+		{
+			while($row = mysqli_fetch_array($result))
+			{
+				$parent_id = $row[10];
+				$group_id = $row[9];
+				$group_name = "null";
+				
+				
+				// day | units in day | duration | roomid | period | group id | course name | execution type | tutor name | tutor last name | tutor code | room name | group name | year
+				echo $row[4] . '&' . $row[5] . '&' . $row[6] . '&' . $row[7] . '&' . $row[8] . '&' . $row[9] . '&' . $row[13] . '&' . $row[15] . '&' . $row[22] . '&' . $row[23] . '&' . $row[24] . '&' . $row[26] . '&' . $row[30] . '&' . $row[36] . '<>';
+			}
+		}
+		else { return 0; }
+    '''
+    semesterType = TBSchedule.query.filter(TBSchedule.Valid_From > 1).limit(22).all()
+    semesterType = 0 if len(semesterType) > 20 else 1
+
+    groupSchedule = TBTurnPart_Group.query.all()
+    
+    
+    response = []
+    for t in groupSchedule:
+        schedule = t.schedule
+        group = t.group
+        tutor = t.turnPart.turn.turnTutor.tutor
+        coursePart = t.turnPart.turn.coursePart
+        
+        if schedule:
+            response.append({
+                'day': schedule.Day_Id,
+                'unitsInDay': schedule.Time_Id,
+                'duration': schedule.Duration,
+                'roomId': schedule.Room_Id,
+                'groupId': group.Groups_Id,
+                'courseName': schedule.course.Name,
+                'executionType': coursePart.CourseType_Id,
+                'tutorName': tutor.First_Name,
+                'tutorLastName': tutor.Last_Name,
+                'tutorCode': tutor.Code,
+                'roomName': schedule.room.Name,
+                'groupName': group.Name,
+            })
+
+
+    return jsonify(response)
+    
