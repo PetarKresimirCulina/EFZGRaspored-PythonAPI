@@ -13,13 +13,10 @@ api = Blueprint('api', __name__)
 @api.route('/programs', methods = ['POST'])
 def programs():
     programs = TBProgram.query.all()
+    
     response = []
-    for program in programs:
-        response.append({
-            'id': program.Program_Id,
-            'name': program.Name,
-            'years': program.Years,
-        })
+    [response.append(p.json()) for p in programs]
+
     return jsonify(response)
 
 @api.route('/groups', methods = ['POST'])
@@ -33,15 +30,11 @@ def groups():
                             .all()
     
     response = []
-    for g in groups:
-        response.append({
-            'id': g.Groups_Id,
-            'name': g.Name,
-            'parent_id': g.Parent_Group_Id,
-        })
+    [response.append(g.json()) for g in groups]
+
     return jsonify(response)
     
-@api.route('/schedules', methods = ['POST'])
+@api.route('/schedule', methods = ['POST'])
 def schedules():
 
     groupId = int(request.form.get('groupid'))
@@ -59,46 +52,9 @@ def schedules():
     clauses = or_( * [TBTurnPart_Group.Groups_Id == x for x in terms] )
     groupSchedule = TBTurnPart_Group.query.filter(clauses).all()
     
-    response = []    
+    response = []
+    [response.append(t.json()) for t in groupSchedule]
     
-    for t in groupSchedule:
-        schedule = t.schedule
-        group = t.group
-        tutor = t.turnPart.turn.turnTutor.tutor
-        coursePart = t.turnPart.turn.coursePart
-        
-        if schedule:
-            response.append({
-                'day': schedule.Day_Id,
-                'unitsInDay': schedule.Time_Id,
-                'duration': schedule.Duration,
-                'roomId': schedule.Room_Id,
-                'groupId': group.Groups_Id,
-                'courseName': schedule.course.Name,
-                'executionType': coursePart.CourseType_Id,
-                'tutorName': tutor.First_Name,
-                'tutorLastName': tutor.Last_Name,
-                'tutorCode': tutor.Code,
-                'roomName': schedule.room.Name,
-                'groupName': group.Name,
-            })
-    '''
-    for t in groupSchedule:
-        response.append({
-            'day': t.turnPart.schedule.Day_Id,
-            'unitsInDay': t.turnPart.schedule.Time_Id,
-            'duration': t.turnPart.schedule.Duration,
-            'roomId': t.turnPart.schedule.Room_Id,
-            'groupId': groupId,
-            'courseName': t.turnPart.schedule.course.Name,
-            'executionType': t.turnPart.turn.coursePart.CourseType_Id,
-            'tutorName': t.turnPart.turn.turnTutor.tutor.First_Name,
-            'tutorLastName': t.turnPart.turn.turnTutor.tutor.Last_Name,
-            'tutorCode': t.turnPart.turn.turnTutor.tutor.Code,
-            'roomName': t.turnPart.schedule.room.Name,
-            'groupName': groupName.Name,
-        })
-       ''' 
     return jsonify(response)
     
     '''
@@ -147,63 +103,20 @@ def duration():
         start = time.mktime(datetime.datetime.strptime(summer[0], "%d.%m.%Y").timetuple())
         end = time.mktime(datetime.datetime.strptime(summer[0], "%d.%m.%Y").timetuple())
     
-    response = [
-        {
+    return jsonify([{
             'year': year,
             'start': start,
             'ends': end
-        }
-    ]
-    return jsonify(response)
+        }]
+    )
 
-@api.route('/search', methods = ['POST'])
-def search():
-    '''
-    $result = $connection->query("SELECT * FROM schedules, courses, tutors, rooms, groups, branches WHERE schedules.turn_part_id=courses.turn_part_id AND courses.tutors = tutors.id AND schedules.room_id=rooms.id AND schedules.group_id = groups.id AND groups.branch_id = branches.id");
-		if($result->num_rows > 0)
-		{
-			while($row = mysqli_fetch_array($result))
-			{
-				$parent_id = $row[10];
-				$group_id = $row[9];
-				$group_name = "null";
-				
-				
-				// day | units in day | duration | roomid | period | group id | course name | execution type | tutor name | tutor last name | tutor code | room name | group name | year
-				echo $row[4] . '&' . $row[5] . '&' . $row[6] . '&' . $row[7] . '&' . $row[8] . '&' . $row[9] . '&' . $row[13] . '&' . $row[15] . '&' . $row[22] . '&' . $row[23] . '&' . $row[24] . '&' . $row[26] . '&' . $row[30] . '&' . $row[36] . '<>';
-			}
-		}
-		else { return 0; }
-    '''
-    semesterType = TBSchedule.query.filter(TBSchedule.Valid_From > 1).limit(22).all()
-    semesterType = 0 if len(semesterType) > 20 else 1
+@api.route('/all', methods = ['POST'])
+def allSchedules():
 
     groupSchedule = TBTurnPart_Group.query.all()
     
-    
     response = []
-    for t in groupSchedule:
-        schedule = t.schedule
-        group = t.group
-        tutor = t.turnPart.turn.turnTutor.tutor
-        coursePart = t.turnPart.turn.coursePart
-        
-        if schedule:
-            response.append({
-                'day': schedule.Day_Id,
-                'unitsInDay': schedule.Time_Id,
-                'duration': schedule.Duration,
-                'roomId': schedule.Room_Id,
-                'groupId': group.Groups_Id,
-                'courseName': schedule.course.Name,
-                'executionType': coursePart.CourseType_Id,
-                'tutorName': tutor.First_Name,
-                'tutorLastName': tutor.Last_Name,
-                'tutorCode': tutor.Code,
-                'roomName': schedule.room.Name,
-                'groupName': group.Name,
-            })
-
-
+    [response.append(t.json()) for t in groupSchedule]
+    
     return jsonify(response)
     

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from sqlalchemy import Column, Date, DateTime, Integer, String, Table, MetaData, create_engine, ForeignKey
 from sqlalchemy.schema import FetchedValue
 from sqlalchemy.orm import backref, relationship, configure_mappers, deferred
@@ -151,6 +152,13 @@ class TBGroup(Base):
     PushNote = deferred(Column(String(512)))
     Misc_Flags = deferred(Column(String(256)))
     
+    def json(self):
+        return ({
+           'id': self.Groups_Id,
+            'name': self.Name,
+            'parent_id': self.Parent_Group_Id,
+        })
+    
 
 
 class TBHistoryLog(Base):
@@ -190,6 +198,13 @@ class TBProgram(Base):
     Misc_Flags = deferred(Column(String(256)))
     Seq_Num = deferred(Column(Integer, nullable=False))
     Flags = deferred(Column(Integer))
+    
+    def json(self):
+        return ({
+            'id': self.Program_Id,
+            'name': self.Name,
+            'years': self.Years,
+        })   
 
 
 class TBRProp(Base):
@@ -445,6 +460,22 @@ class TBTurnPart_Group(Base):
         primaryjoin='TBTurnPart_Group.TurnPart_Id == TBSchedule.TurnPart_Id',
         backref='turnPartGroup'
     )
+
+    def json(self):
+        return ({
+            'day': self.schedule.Day_Id,
+            'unitsInDay': self.schedule.Time_Id,
+            'duration': self.schedule.Duration,
+            'roomId': self.schedule.Room_Id,
+            'groupId': self.group.Groups_Id,
+            'courseName': self.schedule.course.Name,
+            'executionType': self.turnPart.turn.coursePart.CourseType_Id,
+            'tutorName': self.turnPart.turn.turnTutor.tutor.First_Name,
+            'tutorLastName': self.turnPart.turn.turnTutor.tutor.Last_Name,
+            'tutorCode': self.turnPart.turn.turnTutor.tutor.Code,
+            'roomName': self.schedule.room.Name,
+            'groupName': self.group.Name,
+        })
     
 
 class TBTurn_Tutor(Base):

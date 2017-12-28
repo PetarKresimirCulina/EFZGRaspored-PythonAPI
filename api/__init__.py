@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-#imports
 from flask import Flask
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-#app config
-app = Flask(__name__)
-app.config.from_object('config.Dev')
+api = Flask(__name__)
+api.config.from_object('api.config.local.Local')
+print api.config
 
-#db config
-engine = create_engine(app.config['DATABASE'], echo=app.config['DB_ECHO'])
+engine = create_engine(api.config['DATABASE'], echo=api.config['DB_ECHO'])
 metadata = MetaData(bind=engine)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
@@ -18,9 +16,5 @@ db_session = scoped_session(sessionmaker(autocommit=False,
 Base = declarative_base()
 Base.query = db_session.query_property()
 
-#api - iako je ionako cijela app == api
-from api.controllers.apiController import api
-app.register_blueprint(api, url_prefix='/api')
-
-#views
-#ne koristi se...
+from api.v1.routes import api as apiv1
+api.register_blueprint(apiv1, url_prefix='/api/v1')
