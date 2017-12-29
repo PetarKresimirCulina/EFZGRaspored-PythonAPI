@@ -6,7 +6,6 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 api = Flask(__name__)
 api.config.from_object('api.config.local.Local')
-print api.config
 
 engine = create_engine(api.config['DATABASE'], echo=api.config['DB_ECHO'])
 metadata = MetaData(bind=engine)
