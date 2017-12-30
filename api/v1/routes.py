@@ -21,7 +21,7 @@ def programs():
 
 @api.route('/groups', methods = ['POST'])
 def groups():
-    programId = int(request.form.get('programId'))
+    programId = int(request.form.get('program_id'))
     year = int(request.form.get('year'))
     
     groups = TBGroup.query.join(TBBranch, TBGroup.Branch_Id == TBBranch.Branch_Id)\
@@ -77,8 +77,8 @@ def duration():
     
     settings = db_session.query(t_TBSettings).all()
     
-    semesterType = TBSchedule.query.filter(TBSchedule.Valid_From > 1).limit(22).all()
-    semesterType = 0 if len(semesterType) > 20 else 1
+    semesterType = TBSchedule.query.filter(TBSchedule.Valid_From > 15).limit(22).all()
+    semesterType = 0 if len(semesterType) < 20 else 1
     
     for s in settings:
         if s.Name == 'year':
@@ -97,23 +97,23 @@ def duration():
         end = time.mktime(datetime.datetime.strptime(winter[1], "%d.%m.%Y").timetuple())
     else:
         summer = summer.split(' - ')
-        summer[0] = '{0}{1}'.format(summer[0], year)
+        summer[0] = '{0}{1}'.format(summer[0], year + 1)
         summer[1] = '{0}{1}'.format(summer[1], year + 1)
         
         start = time.mktime(datetime.datetime.strptime(summer[0], "%d.%m.%Y").timetuple())
-        end = time.mktime(datetime.datetime.strptime(summer[0], "%d.%m.%Y").timetuple())
+        end = time.mktime(datetime.datetime.strptime(summer[1], "%d.%m.%Y").timetuple())
     
     return jsonify([{
             'year': year,
             'start': start,
-            'ends': end
+            'end': end
         }]
     )
 
 @api.route('/all', methods = ['POST'])
 def allSchedules():
 
-    groupSchedule = TBTurnPart_Group.query.all()
+    groupSchedule = TBTurnPart_Group.query.join(TBTurnPart_Group.schedule).all()
     
     response = []
     [response.append(t.json()) for t in groupSchedule]

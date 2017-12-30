@@ -475,6 +475,8 @@ class TBTurnPart_Group(Base):
             'tutorCode': self.turnPart.turn.turnTutor.tutor.Code,
             'roomName': self.schedule.room.Name,
             'groupName': self.group.Name,
+            'validFrom': self.schedule.Valid_From,
+            'validTo': self.schedule.Valid_To,
         })
     
 
