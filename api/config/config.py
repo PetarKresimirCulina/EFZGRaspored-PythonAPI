@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Base(object):
     DEBUG = False
     DEVELOPMENT = False
