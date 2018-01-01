@@ -17,3 +17,6 @@ Base.query = db_session.query_property()
 
 from api.v1.routes import api as apiv1
 api.register_blueprint(apiv1, url_prefix='/api/v1')
+
+if __name__ == "__main__":
+   api.run(host="0.0.0.0")
