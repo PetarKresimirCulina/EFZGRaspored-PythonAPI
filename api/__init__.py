@@ -22,6 +22,3 @@ api.register_blueprint(apiv1, url_prefix='/api/v1')
 def programs():
     return 'EFZG API'
 
-if __name__ == "__main__":
-   api.run()
-
